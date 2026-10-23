@@ -8,4 +8,6 @@ export const env = {
   ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET || 'authorflow_access_secret_key_jwt_2026',
   REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET || 'authorflow_refresh_secret_key_jwt_2026',
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
+  AWS_REGION: process.env.AWS_REGION || 'us-east-1',
+  SQS_QUEUE_URL: process.env.SQS_QUEUE_URL || '',
 };
