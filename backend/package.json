@@ -6,7 +6,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "tsx watch src/server.ts"
+    "dev": "tsx watch src/server.ts",
+    "migrate": "tsx migrations/run.ts",
+    "seed": "tsx seeds/seed.ts"
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.1156.0",
