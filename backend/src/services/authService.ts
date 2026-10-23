@@ -97,6 +97,9 @@ export const authService = {
       name: user.name,
       email: user.email,
       role: user.role,
+      phone: user.phone,
+      city: user.city,
+      joined_date: user.joined_date,
       created_at: user.created_at,
     };
 

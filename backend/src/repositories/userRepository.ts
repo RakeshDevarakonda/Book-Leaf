@@ -1,68 +1,71 @@
 import { query } from '../config/db';
 import { AuthSession, User, UserProfile } from '../types/auth';
 
+function getTodayDateString(): string {
+  return new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
+}
+
 export const userRepository = {
   async findByEmail(email: string): Promise<User | null> {
     const res = await query(
-      'SELECT id, name, email, password_hash, role, CAST(created_at AS BIGINT) as created_at, CAST(updated_at AS BIGINT) as updated_at FROM users WHERE LOWER(email) = LOWER($1)',
+      'SELECT id, name, email, password_hash, role, phone, city, joined_date, created_at, updated_at FROM users WHERE LOWER(email) = LOWER($1)',
       [email]
     );
-    if (!res.rows[0]) return null;
-    return {
-      ...res.rows[0],
-      created_at: Number(res.rows[0].created_at),
-      updated_at: Number(res.rows[0].updated_at),
-    };
+    return res.rows[0] || null;
   },
 
   async findById(id: string): Promise<UserProfile | null> {
     const res = await query(
-      'SELECT id, name, email, role, CAST(created_at AS BIGINT) as created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, role, phone, city, joined_date, created_at FROM users WHERE id = $1',
       [id]
     );
-    if (!res.rows[0]) return null;
-    return {
-      ...res.rows[0],
-      created_at: Number(res.rows[0].created_at),
-    };
+    return res.rows[0] || null;
   },
 
   async createUser(userData: {
+    id?: string;
     name: string;
     email: string;
     passwordHash: string;
     role: 'author' | 'admin';
-    createdAt?: number;
+    phone?: string | null;
+    city?: string | null;
+    joinedDate?: string;
+    createdAt?: string;
   }): Promise<UserProfile> {
-    const now = userData.createdAt || Math.floor(Date.now() / 1000); // epoch seconds
+    const today = getTodayDateString();
+    const joined = userData.joinedDate || today;
+    const created = userData.createdAt || today;
+
     const res = await query(
-      `INSERT INTO users (name, email, password_hash, role, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, name, email, role, CAST(created_at AS BIGINT) as created_at`,
+      `INSERT INTO users (id, name, email, password_hash, role, phone, city, joined_date, created_at, updated_at)
+       VALUES (COALESCE($1, gen_random_uuid()::text), $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING id, name, email, role, phone, city, joined_date, created_at`,
       [
+        userData.id || null,
         userData.name,
         userData.email.toLowerCase(),
         userData.passwordHash,
         userData.role,
-        now,
-        now,
+        userData.phone || null,
+        userData.city || null,
+        joined,
+        created,
+        created,
       ]
     );
-    return {
-      ...res.rows[0],
-      created_at: Number(res.rows[0].created_at),
-    };
+    return res.rows[0];
   },
 
   // --- Auth Session Management ---
 
   async createSession(userId: string, refreshTokenHash: string): Promise<string> {
-    const now = Math.floor(Date.now() / 1000); // epoch seconds
+    const today = getTodayDateString();
     const res = await query(
       `INSERT INTO auth_sessions (user_id, refresh_token_hash, created_at)
        VALUES ($1, $2, $3)
        RETURNING id`,
-      [userId, refreshTokenHash, now]
+      [userId, refreshTokenHash, today]
     );
     return res.rows[0].id;
   },
@@ -78,17 +81,12 @@ export const userRepository = {
 
   async findSessionById(sessionId: string): Promise<AuthSession | null> {
     const res = await query(
-      `SELECT id, user_id, refresh_token_hash, is_revoked,
-              CAST(created_at AS BIGINT) as created_at
+      `SELECT id, user_id, refresh_token_hash, is_revoked, created_at
        FROM auth_sessions
        WHERE id = $1`,
       [sessionId]
     );
-    if (!res.rows[0]) return null;
-    return {
-      ...res.rows[0],
-      created_at: Number(res.rows[0].created_at),
-    };
+    return res.rows[0] || null;
   },
 
   async updateSessionToken(sessionId: string, newRefreshTokenHash: string): Promise<void> {

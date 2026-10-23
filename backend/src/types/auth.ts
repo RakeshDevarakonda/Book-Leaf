@@ -8,8 +8,11 @@ export interface User {
   email: string;
   password_hash: string;
   role: UserRole;
-  created_at: number; // epoch seconds
-  updated_at: number; // epoch seconds
+  phone?: string | null;
+  city?: string | null;
+  joined_date: string; // 'YYYY-MM-DD'
+  created_at: string;  // 'YYYY-MM-DD'
+  updated_at: string;  // 'YYYY-MM-DD'
 }
 
 export interface UserProfile {
@@ -17,7 +20,10 @@ export interface UserProfile {
   name: string;
   email: string;
   role: UserRole;
-  created_at: number; // epoch seconds
+  phone?: string | null;
+  city?: string | null;
+  joined_date: string; // 'YYYY-MM-DD'
+  created_at: string;  // 'YYYY-MM-DD'
 }
 
 export interface AuthSession {
@@ -25,7 +31,7 @@ export interface AuthSession {
   user_id: string;
   refresh_token_hash: string;
   is_revoked: boolean;
-  created_at: number; // epoch seconds
+  created_at: string; // 'YYYY-MM-DD'
 }
 
 export interface AuthTokenPayload {
@@ -33,7 +39,7 @@ export interface AuthTokenPayload {
   email: string;
   role: UserRole;
   name: string;
-  sessionId: string; // bound to the specific active session!
+  sessionId: string;
 }
 
 export interface RefreshTokenPayload {
