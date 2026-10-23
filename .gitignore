@@ -26,6 +26,11 @@ dist/
 build/
 .cache/
 
+# Internal prompt/brief docs & source datasets (for local dev only)
+*.pdf
+bookleaf_system_design.md
+FULLSTACK-SAMPLEDATA*.json
+
 # Python (for workers later)
 __pycache__/
 *.py[cod]
