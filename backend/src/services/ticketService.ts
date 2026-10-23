@@ -62,7 +62,9 @@ export const ticketService = {
     category?: TicketCategoryType;
     priority?: TicketPriorityType;
     aiStatus?: string;
-  }): Promise<Ticket[]> {
+    page?: number;
+    limit?: number;
+  }): Promise<{ tickets: Ticket[]; total: number; page: number; limit: number }> {
     return ticketRepository.findAllForAdmin(filters);
   },
 

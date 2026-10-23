@@ -34,14 +34,16 @@ CREATE TABLE IF NOT EXISTS tickets (
     assigned_admin_id VARCHAR(50)
         REFERENCES users(id) ON DELETE SET NULL,
 
-    category_source VARCHAR(20) NOT NULL DEFAULT 'manual'
+    -- Fix 1: New tickets default to 'ai' so AI classification is NOT blocked!
+    category_source VARCHAR(20) NOT NULL DEFAULT 'ai'
         CHECK (category_source IN ('manual', 'ai')),
 
-    priority_source VARCHAR(20) NOT NULL DEFAULT 'manual'
+    priority_source VARCHAR(20) NOT NULL DEFAULT 'ai'
         CHECK (priority_source IN ('manual', 'ai')),
 
-    ai_draft_response TEXT,                               -- Stores the AI-generated draft response for admins
-    ai_status VARCHAR(20) NOT NULL DEFAULT 'pending'     -- 'pending' | 'processing' | 'completed' | 'failed'
+    ai_draft_response TEXT,
+    draft_edited_by_admin BOOLEAN NOT NULL DEFAULT FALSE, -- Fix 2: Protect admin edits from AI overwrite
+    ai_status VARCHAR(20) NOT NULL DEFAULT 'pending'
         CHECK (ai_status IN ('pending', 'processing', 'completed', 'failed')),
 
     created_at BIGINT NOT NULL,

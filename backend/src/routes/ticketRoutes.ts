@@ -24,4 +24,7 @@ router.get('/', ticketController.getMyTickets);
 // GET /api/tickets/:id -> Author view ticket conversation (only public messages)
 router.get('/:id', getTicketByIdParamValidation, ticketController.getTicketDetail);
 
+// POST /api/tickets/:id/responses -> Author reply to existing ticket (re-added for completeness)
+router.post('/:id/responses', addResponseValidation, ticketController.addResponse);
+
 export default router;

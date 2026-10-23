@@ -16,6 +16,7 @@ function parseTicketRow(row: any): Ticket {
     category_source: row.category_source,
     priority_source: row.priority_source,
     ai_draft_response: row.ai_draft_response || null,
+    draft_edited_by_admin: row.draft_edited_by_admin === true,
     ai_status: row.ai_status || 'pending',
     created_at: Number(row.created_at),
     updated_at: Number(row.updated_at),
@@ -55,9 +56,9 @@ export const ticketRepository = {
     const res = await query(
       `INSERT INTO tickets (
         author_id, book_id, subject, description, status, category, priority,
-        ai_status, created_at, updated_at
+        category_source, priority_source, ai_status, created_at, updated_at
       )
-      VALUES ($1, $2, $3, $4, 'Open', $5, $6, 'pending', $7, $8)
+      VALUES ($1, $2, $3, $4, 'Open', $5, $6, 'ai', 'ai', 'pending', $7, $8)
       RETURNING *`,
       [data.authorId, data.bookId || null, data.subject, data.description, category, priority, now, now]
     );
@@ -100,7 +101,9 @@ export const ticketRepository = {
     category?: TicketCategoryType;
     priority?: TicketPriorityType;
     aiStatus?: string;
-  }): Promise<Ticket[]> {
+    page?: number;
+    limit?: number;
+  }): Promise<{ tickets: Ticket[]; total: number; page: number; limit: number }> {
     const conditions: string[] = [];
     const params: any[] = [];
 
@@ -123,7 +126,16 @@ export const ticketRepository = {
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    // Sort by priority urgency (Critical -> High -> Medium -> Low) then oldest unresolved
+    // Total count query for pagination
+    const countRes = await query(`SELECT COUNT(*)::int as total FROM tickets t ${whereClause}`, params);
+    const total = countRes.rows[0]?.total || 0;
+
+    const page = Math.max(1, filters.page || 1);
+    const limit = Math.min(100, Math.max(1, filters.limit || 20));
+    const offset = (page - 1) * limit;
+
+    const listParams = [...params, limit, offset];
+
     const res = await query(
       `SELECT t.*, 
               u.name as author_name, 
@@ -143,11 +155,17 @@ export const ticketRepository = {
            WHEN 'Low' THEN 4 
            ELSE 5 
          END ASC,
-         t.created_at ASC`,
-      params
+         t.created_at ASC
+       LIMIT $${listParams.length - 1} OFFSET $${listParams.length}`,
+      listParams
     );
 
-    return res.rows.map(parseTicketRow);
+    return {
+      tickets: res.rows.map(parseTicketRow),
+      total,
+      page,
+      limit,
+    };
   },
 
   async updateTicket(ticketId: string, updates: {
@@ -181,6 +199,7 @@ export const ticketRepository = {
     if (updates.aiDraftResponse !== undefined) {
       params.push(updates.aiDraftResponse);
       fields.push(`ai_draft_response = $${params.length}`);
+      fields.push(`draft_edited_by_admin = TRUE`); // Fix 2: mark as edited by human
     }
 
     if (fields.length === 0) {

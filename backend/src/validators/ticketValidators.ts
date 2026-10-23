@@ -32,6 +32,8 @@ export const adminFilterTicketsValidation = celebrate({
     category: Joi.string().valid(...TICKET_CATEGORIES).optional(),
     priority: Joi.string().valid(...TICKET_PRIORITIES).optional(),
     aiStatus: Joi.string().valid('pending', 'processing', 'completed', 'failed').optional(),
+    page: Joi.number().integer().min(1).default(1).optional(),
+    limit: Joi.number().integer().min(1).max(100).default(20).optional(),
   }),
 });
 

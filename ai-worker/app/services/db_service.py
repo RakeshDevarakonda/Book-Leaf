@@ -41,10 +41,19 @@ def get_ticket_context(ticket_id: str):
             )
             return cur.fetchone()
 
+def set_ticket_processing(ticket_id: str):
+    """
+    Marks the ticket status as 'processing' when the worker starts.
+    """
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE tickets SET ai_status = 'processing' WHERE id = %s", (ticket_id,))
+        conn.commit()
+
 def update_ticket_ai_results(ticket_id: str, category: str, priority: str, ai_draft_response: str, ai_status: str):
     """
     Safely writes AI suggestions back to PostgreSQL.
-    Respects manual overrides by human admins!
+    Respects manual overrides AND protects admin-edited drafts!
     """
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -56,7 +65,7 @@ def update_ticket_ai_results(ticket_id: str, category: str, priority: str, ai_dr
                     category_source = CASE WHEN category_source = 'manual' THEN 'manual' ELSE 'ai' END,
                     priority = CASE WHEN priority_source = 'manual' THEN priority ELSE %s END,
                     priority_source = CASE WHEN priority_source = 'manual' THEN 'manual' ELSE 'ai' END,
-                    ai_draft_response = %s,
+                    ai_draft_response = CASE WHEN draft_edited_by_admin = TRUE THEN ai_draft_response ELSE %s END,
                     ai_status = %s
                 WHERE id = %s
                 """,

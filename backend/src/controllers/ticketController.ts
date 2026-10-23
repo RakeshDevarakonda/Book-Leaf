@@ -78,15 +78,22 @@ export const ticketController = {
     }
   },
 
-  // Admin: Get all tickets with filtering and priority sort
+  // Admin: Get all tickets with filtering, pagination and priority sort
   async getAdminTicketQueue(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { status, category, priority } = req.query as any;
-      const tickets = await ticketService.getAdminTicketQueue({ status, category, priority });
+      const { status, category, priority, aiStatus, page, limit } = req.query as any;
+      const result = await ticketService.getAdminTicketQueue({
+        status,
+        category,
+        priority,
+        aiStatus,
+        page: page ? parseInt(page, 10) : 1,
+        limit: limit ? parseInt(limit, 10) : 20,
+      });
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
-        data: { tickets },
+        data: result,
       });
     } catch (err) {
       next(err);

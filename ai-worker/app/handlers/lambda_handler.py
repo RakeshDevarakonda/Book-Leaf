@@ -16,6 +16,9 @@ def process_ticket_job(ticket_id: str):
         return False
 
     try:
+        # Mark as processing
+        db_service.set_ticket_processing(ticket_id)
+
         # 2. Invoke LLM service
         ai_output = llm_service.generate_ai_analysis(ticket)
         category = ai_output.get("category", "General Inquiry")
@@ -46,13 +49,15 @@ def process_ticket_job(ticket_id: str):
 def lambda_handler(event, context):
     """
     Standard AWS Lambda entry point triggered by AWS SQS events.
-    Compatible with AWS Lambda + SQS event mapping.
+    Reports batchItemFailures for failed records so SQS can retry them individually!
     """
     records = event.get("Records", [])
     print(f"[Lambda] Received {len(records)} SQS records")
     
-    success_count = 0
+    batch_item_failures = []
+    
     for record in records:
+        message_id = record.get("messageId")
         try:
             body = record.get("body", "{}")
             if isinstance(body, str):
@@ -61,13 +66,15 @@ def lambda_handler(event, context):
                 data = body
                 
             ticket_id = data.get("ticketId")
-            if ticket_id:
-                if process_ticket_job(ticket_id):
-                    success_count += 1
+            if not ticket_id or not process_ticket_job(ticket_id):
+                if message_id:
+                    batch_item_failures.append({"itemIdentifier": message_id})
         except Exception as e:
-            print(f"[Lambda] Error parsing record: {e}")
+            print(f"[Lambda] Error parsing record {message_id}: {e}")
+            if message_id:
+                batch_item_failures.append({"itemIdentifier": message_id})
 
+    # Return standard AWS Lambda SQS partial batch failure response
     return {
-        "statusCode": 200,
-        "body": json.dumps({"processed": len(records), "success": success_count})
+        "batchItemFailures": batch_item_failures
     }

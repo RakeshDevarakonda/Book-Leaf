@@ -90,9 +90,9 @@ class TestServerHandler(BaseHTTPRequestHandler):
             self._send_response(404, {"error": f"Unknown endpoint {self.path}"})
 
 def run_test_server(port: int = 8000):
-    server = HTTPServer(("0.0.0.0", port), TestServerHandler)
+    server = HTTPServer(("127.0.0.1", port), TestServerHandler)
     print("=" * 60)
-    print(f"🚀 AI Worker Local Test Server running on http://localhost:{port}")
+    print(f"🚀 AI Worker Local Test Server running on http://127.0.0.1:{port} (bound to localhost)")
     print("=" * 60)
     print("Endpoints available for testing:")
     print(f"  GET  http://localhost:{port}/health")

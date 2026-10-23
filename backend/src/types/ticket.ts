@@ -13,6 +13,7 @@ export interface Ticket {
   category_source: 'manual' | 'ai';
   priority_source: 'manual' | 'ai';
   ai_draft_response?: string | null;
+  draft_edited_by_admin: boolean;
   ai_status: 'pending' | 'processing' | 'completed' | 'failed';
   created_at: number; // epoch seconds
   updated_at: number; // epoch seconds
