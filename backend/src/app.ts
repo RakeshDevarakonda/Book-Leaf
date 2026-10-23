@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import { env } from './config/env';
 import authRoutes from './routes/authRoutes';
 import { errorHandler } from './middleware/errorHandler';
+import bookRoutes from './routes/bookRoutes';
 
 export const app = express();
 
@@ -23,6 +24,9 @@ app.get('/api/health', (req, res) => {
 
 // Auth Routes
 app.use('/api/auth', authRoutes);
+
+// Book Routes
+app.use('/api/books', bookRoutes);
 
 // Centralized error handler
 app.use(errorHandler);

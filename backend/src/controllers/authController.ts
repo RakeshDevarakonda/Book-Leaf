@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from '../services/authService';
-import { loginSchema, signupSchema } from '../validators/authValidators';
 import { env } from '../config/env';
 import { COOKIE_NAMES, COOKIE_PATHS, ERROR_CODES, HTTP_STATUS, TOKEN_EXPIRY } from '../config/constants';
 
@@ -90,15 +89,7 @@ export const authController = {
 
   async me(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      if (!req.user) {
-        res.status(HTTP_STATUS.UNAUTHORIZED).json({
-          success: false,
-          error: { code: ERROR_CODES.UNAUTHORIZED, message: 'Not authenticated' },
-        });
-        return;
-      }
-
-      const user = await authService.getProfile(req.user.id);
+      const user = await authService.getProfile(req.user!.id);
       res.status(HTTP_STATUS.OK).json({
         success: true,
         data: { user },
@@ -110,11 +101,8 @@ export const authController = {
 
   async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const sessionId = req.user?.sessionId;
-
-      if (sessionId) {
-        await authService.logout(sessionId);
-      }
+      const sessionId = req.user!.sessionId;
+      await authService.logout(sessionId);
 
       res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, ACCESS_COOKIE_OPTIONS);
       res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, REFRESH_COOKIE_OPTIONS);
