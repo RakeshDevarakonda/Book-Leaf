@@ -74,7 +74,6 @@ async function seed() {
   const authorPasswordHash = await bcrypt.hash(DEFAULT_AUTHOR_PASSWORD, salt);
   const adminPasswordHash = await bcrypt.hash(DEFAULT_ADMIN_PASSWORD, salt);
 
-  const nowEpoch = Math.floor(Date.now() / 1000);
   const nowIso = new Date().toISOString();
 
   // 4. Seed Default Admin User
@@ -95,8 +94,8 @@ async function seed() {
       '+91-11-2345-6789',
       'Delhi',
       '2022-01-01',
-      nowEpoch,
-      nowEpoch,
+      nowIso,
+      nowIso,
     ]
   );
 
@@ -126,8 +125,8 @@ async function seed() {
         author.phone,
         author.city,
         author.joined_date,
-        nowEpoch,
-        nowEpoch,
+        nowIso,
+        nowIso,
       ]
     );
 

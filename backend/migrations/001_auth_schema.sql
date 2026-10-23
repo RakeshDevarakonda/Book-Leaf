@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(50),
     city VARCHAR(100),
     joined_date VARCHAR(10) NOT NULL,     -- 'YYYY-MM-DD'
-    created_at VARCHAR(10) NOT NULL,      -- 'YYYY-MM-DD'
-    updated_at VARCHAR(10) NOT NULL       -- 'YYYY-MM-DD'
+    created_at VARCHAR(35) NOT NULL,      -- ISO-8601 timestamp string
+    updated_at VARCHAR(35) NOT NULL       -- ISO-8601 timestamp string
 );
 
 CREATE TABLE IF NOT EXISTS auth_sessions (
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS auth_sessions (
     user_id VARCHAR(50) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     refresh_token_hash VARCHAR(255) NOT NULL,
     is_revoked BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at VARCHAR(10) NOT NULL       -- 'YYYY-MM-DD'
+    created_at VARCHAR(35) NOT NULL       -- ISO-8601 timestamp string
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);

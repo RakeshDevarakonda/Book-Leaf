@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS books (
     last_royalty_payout_date VARCHAR(10),        -- 'YYYY-MM-DD' (nullable for books in production)
     print_partner VARCHAR(100),                  -- 'In-House' | 'Repro India'
     available_on TEXT[] DEFAULT '{}',            -- ARRAY e.g. ARRAY['Amazon India', 'Flipkart']
-    created_at VARCHAR(30) NOT NULL,             -- ISO timestamp string
-    updated_at VARCHAR(30) NOT NULL              -- ISO timestamp string
+    created_at VARCHAR(35) NOT NULL,             -- ISO-8601 timestamp string
+    updated_at VARCHAR(35) NOT NULL              -- ISO-8601 timestamp string
 );
 
 CREATE INDEX IF NOT EXISTS idx_books_author_id ON books(author_id);
